@@ -46,7 +46,7 @@ namespace System;
 /// 强大的日志监听器
 /// </summary>
 /// <remarks>主要用于将请求的信息打印出来</remarks>
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
+[SuppressSniffer, AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
 public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IOrderedFilter
 {
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IOr
     public int Order => FilterOrder;
 
     /// <summary>
-    /// 固定日志分类名
+    /// 日志 LogName
     /// </summary>
     /// <remarks>方便对日志进行过滤写入不同的存储介质中</remarks>
     internal const string LOG_CATEGORY_NAME = "System.Logging.LoggingMonitor";
@@ -195,7 +195,7 @@ public sealed class LoggingMonitorAttribute : Attribute, IAsyncActionFilter, IOr
 
         // 获取客户端 IPv4 地址
         var remoteIPv4 = httpContext.GetRemoteIpAddressToIPv4();
-        logContext.Set($"{LOG_CONTEXT_NAME}.RemoteIPv4", localIPv4);
+        logContext.Set($"{LOG_CONTEXT_NAME}.RemoteIPv4", remoteIPv4);
 
         // 获取请求方式
         var httpMethod = httpContext.Request.Method;
