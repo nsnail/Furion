@@ -132,19 +132,41 @@ public sealed partial class HttpRequestPart
     public List<Action<HttpClient, HttpRequestMessage>> RequestInterceptors { get; private set; } = new List<Action<HttpClient, HttpRequestMessage>>();
 
     /// <summary>
+    /// 构建请求对象拦截器（异步）
+    /// </summary>
+    public List<Func<HttpClient, HttpRequestMessage, Task>> RequestAsyncInterceptors { get; private set; } = new List<Func<HttpClient, HttpRequestMessage, Task>>();
+
+    /// <summary>
     /// 创建客户端对象拦截器
     /// </summary>
     public List<Action<HttpClient>> HttpClientInterceptors { get; private set; } = new List<Action<HttpClient>>();
+
+    /// <summary>
+    /// 创建客户端对象拦截器（异步）
+    /// </summary>
+    public List<Func<HttpClient, Task>> HttpClientAsyncInterceptors { get; private set; } = new List<Func<HttpClient, Task>>();
 
     /// <summary>
     /// 请求成功拦截器
     /// </summary>
     public List<Action<HttpClient, HttpResponseMessage>> ResponseInterceptors { get; private set; } = new List<Action<HttpClient, HttpResponseMessage>>();
 
+
+    /// <summary>
+    /// 请求成功拦截器（异步）
+    /// </summary>
+    public List<Func<HttpClient, HttpResponseMessage, Task>> ResponseAsyncInterceptors { get; private set; } = new List<Func<HttpClient, HttpResponseMessage, Task>>();
+
     /// <summary>
     /// 请求异常拦截器
     /// </summary>
     public List<Action<HttpClient, HttpResponseMessage, string>> ExceptionInterceptors { get; private set; } = new List<Action<HttpClient, HttpResponseMessage, string>>();
+
+
+    /// <summary>
+    /// 请求异常拦截器（异步）
+    /// </summary>
+    public List<Func<HttpClient, HttpResponseMessage, string, Task>> ExceptionAsyncInterceptors { get; private set; } = new List<Func<HttpClient, HttpResponseMessage, string, Task>>();
 
     /// <summary>
     /// 设置请求作用域

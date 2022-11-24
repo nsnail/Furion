@@ -345,23 +345,60 @@ public class HttpDispatchProxy : AspectDispatchProxy, IDispatchProxy
                     break;
                 // 加载 Client 配置拦截
                 case InterceptorTypes.Client:
-                    var onClientCreating = (Action<HttpClient>)Delegate.CreateDelegate(typeof(Action<HttpClient>), method);
-                    httpRequestPart.OnClientCreating(onClientCreating);
+                    if (method.ReturnType == typeof(Task))
+                    {
+                        var onClientCreating = (Func<HttpClient, Task>)Delegate.CreateDelegate(typeof(Func<HttpClient, Task>), method);
+                        httpRequestPart.OnClientCreating(onClientCreating);
+                    }
+                    else
+                    {
+                        var onClientCreating = (Action<HttpClient>)Delegate.CreateDelegate(typeof(Action<HttpClient>), method);
+                        httpRequestPart.OnClientCreating(onClientCreating);
+                    }
+
                     break;
                 // 加载请求拦截
                 case InterceptorTypes.Request:
-                    var onRequesting = (Action<HttpClient, HttpRequestMessage>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpRequestMessage>), method);
-                    httpRequestPart.OnRequesting(onRequesting);
+                    if (method.ReturnType == typeof(Task))
+                    {
+                        var onRequesting = (Func<HttpClient, HttpRequestMessage, Task>)Delegate.CreateDelegate(
+                                typeof(Func<HttpClient, HttpRequestMessage, Task>), method);
+                        httpRequestPart.OnRequesting(onRequesting);
+                    }
+                    else
+                    {
+                        var onRequesting = (Action<HttpClient, HttpRequestMessage>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpRequestMessage>), method);
+                        httpRequestPart.OnRequesting(onRequesting);
+                    }
+
                     break;
                 // 加载响应拦截
                 case InterceptorTypes.Response:
-                    var onResponsing = (Action<HttpClient, HttpResponseMessage>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpResponseMessage>), method);
-                    httpRequestPart.OnResponsing(onResponsing);
+                    if (method.ReturnType == typeof(Task))
+                    {
+                        var onResponsing = (Func<HttpClient, HttpResponseMessage, Task>)Delegate.CreateDelegate(typeof(Func<HttpClient, HttpResponseMessage, Task>), method);
+                        httpRequestPart.OnResponsing(onResponsing);
+                    }
+                    else
+                    {
+                        var onResponsing = (Action<HttpClient, HttpResponseMessage>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpResponseMessage>), method);
+                        httpRequestPart.OnResponsing(onResponsing);
+                    }
+
                     break;
                 // 加载异常拦截
                 case InterceptorTypes.Exception:
-                    var onException = (Action<HttpClient, HttpResponseMessage, string>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpResponseMessage, string>), method);
-                    httpRequestPart.OnException(onException);
+                    if (method.ReturnType == typeof(Task))
+                    {
+                        var onException = (Func<HttpClient, HttpResponseMessage, string, Task>)Delegate.CreateDelegate(typeof(Func<HttpClient, HttpResponseMessage, string, Task>), method);
+                        httpRequestPart.OnException(onException);
+                    }
+                    else
+                    {
+                        var onException = (Action<HttpClient, HttpResponseMessage, string>)Delegate.CreateDelegate(typeof(Action<HttpClient, HttpResponseMessage, string>), method);
+                        httpRequestPart.OnException(onException);
+                    }
+
                     break;
 
                 default: break;
@@ -397,12 +434,20 @@ public class HttpDispatchProxy : AspectDispatchProxy, IDispatchProxy
                     {
                         httpRequestPart.OnClientCreating(onClientCreating);
                     }
+                    else if (item.Value is Func<HttpClient, Task> onClientCreatingAsync)
+                    {
+                        httpRequestPart.OnClientCreating(onClientCreatingAsync);
+                    }
                     break;
                 // 加载请求拦截
                 case InterceptorTypes.Request:
                     if (item.Value is Action<HttpClient, HttpRequestMessage> onRequesting)
                     {
                         httpRequestPart.OnRequesting(onRequesting);
+                    }
+                    else if (item.Value is Func<HttpClient, HttpRequestMessage, Task> onRequestingAsync)
+                    {
+                        httpRequestPart.OnRequesting(onRequestingAsync);
                     }
                     break;
                 // 加载响应拦截
@@ -411,12 +456,20 @@ public class HttpDispatchProxy : AspectDispatchProxy, IDispatchProxy
                     {
                         httpRequestPart.OnResponsing(onResponsing);
                     }
+                    else if (item.Value is Func<HttpClient, HttpResponseMessage, Task> onResponsingAsync)
+                    {
+                        httpRequestPart.OnResponsing(onResponsingAsync);
+                    }
                     break;
                 // 加载异常拦截
                 case InterceptorTypes.Exception:
                     if (item.Value is Action<HttpClient, HttpResponseMessage, string> onException)
                     {
                         httpRequestPart.OnException(onException);
+                    }
+                    else if (item.Value is Func<HttpClient, HttpResponseMessage, string, Task> onExceptionAsync)
+                    {
+                        httpRequestPart.OnException(onExceptionAsync);
                     }
                     break;
 

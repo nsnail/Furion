@@ -721,10 +721,6 @@ public sealed partial class HttpRequestPart
             u?.Invoke(httpClient);
         });
 
-        // 判断命名客户端是否配置了 BaseAddress，且必须以 / 结尾
-        var httpClientOriginalString = httpClient.BaseAddress?.OriginalString;
-        if (!string.IsNullOrWhiteSpace(httpClientOriginalString) && !httpClientOriginalString.EndsWith("/"))
-            throw new InvalidOperationException($"The `{ClientName}` of HttpClient BaseAddress must be end with '/'.");
 
         // 检查请求地址，如果客户端 BaseAddress 没有配置且 RequestUrl 也没配置
         if (string.IsNullOrWhiteSpace(httpClientOriginalString) && string.IsNullOrWhiteSpace(RequestUrl)) throw new NullReferenceException(RequestUrl);
@@ -732,6 +728,11 @@ public sealed partial class HttpRequestPart
         // 处理模板问题
         RequestUrl = RequestUrl.Render(Templates, EncodeUrl);
 
+
+        // 配置请求拦截（异步）
+        foreach(var u in RequestAsyncInterceptors)
+            if (u != null)
+                await u.Invoke(httpClient, request);
         // 捕获异常
         Exception exception = default;
         HttpResponseMessage response = default;
@@ -825,6 +826,11 @@ public sealed partial class HttpRequestPart
             {
                 u?.Invoke(httpClient, response);
             });
+
+            // 调用成功拦截器（异步）
+            foreach (var u in ResponseAsyncInterceptors)
+                if (u != null)
+                    await u.Invoke(httpClient, response);
         }
         // 请求异常
         else
@@ -855,6 +861,11 @@ public sealed partial class HttpRequestPart
                 });
             }
 
+            // 调用异常拦截器（异步）
+            if (ExceptionAsyncInterceptors != null && ExceptionAsyncInterceptors.Count > 0)
+                foreach (var u in ExceptionAsyncInterceptors)
+                    if(u != null)
+                        await u.Invoke(httpClient, response, errors);
             // 抛出请求异常
             if (exception != null)
             {

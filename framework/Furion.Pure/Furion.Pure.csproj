@@ -4,6 +4,7 @@
 		<Description>让 .NET 开发更简单，更通用，更流行。</Description>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
+		<PackageId>Furion.Pure.NS</PackageId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,8 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.3.8" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.3.8" />
 	</ItemGroup>
 
 	<ItemGroup>

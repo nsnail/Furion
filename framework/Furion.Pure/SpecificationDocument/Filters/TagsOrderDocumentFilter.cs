@@ -24,6 +24,7 @@
 // ------------------------------------------------------------------------
 
 using Furion.DynamicApiController;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -42,14 +43,38 @@ public class TagsOrderDocumentFilter : IDocumentFilter
     /// <param name="context"></param>
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        swaggerDoc.Tags = Penetrates.ControllerOrderCollection
-            .Where(u => SpecificationDocumentBuilder.GetControllerGroups(u.Value.Item3).Any(c => c.Group == context.DocumentName))
-            .OrderByDescending(u => u.Value.Item2)
-            .ThenBy(u => u.Key)
-            .Select(c => new OpenApiTag
+        foreach (var apiDescription in context.ApiDescriptions)
+        {
+            var actionDescriptor = apiDescription.ActionDescriptor as ControllerActionDescriptor;
+
+            var controllerName = actionDescriptor.ControllerName;
+            var controllerTag = SpecificationDocumentBuilder.GetControllerTag(actionDescriptor);
+
+            // 修正自定义 Tag 不能实现注释问题
+            if (controllerName != controllerTag)
             {
-                Name = c.Value.Item1,
-                Description = swaggerDoc.Tags.FirstOrDefault(m => m.Name == c.Key)?.Description
-            }).ToList();
+                var tag = swaggerDoc.Tags.FirstOrDefault(u => u.Name == controllerName);
+                if (tag != null)
+                {
+                    tag.Name = controllerTag;
+                }
+            }
+        }
+
+        swaggerDoc.Tags = swaggerDoc.Tags
+                                    .OrderByDescending(u => GetTagOrder(u.Name))
+                                    .ThenBy(u => u.Name)
+                                    .ToArray();
+    }
+
+    /// <summary>
+    /// 获取标签排序
+    /// </summary>
+    /// <param name="tag"></param>
+    /// <returns></returns>
+    private static int GetTagOrder(string tag)
+    {
+        var isExist = Penetrates.ControllerOrderCollection.TryGetValue(tag, out var order);
+        return isExist ? order.Item2 : default;
     }
 }

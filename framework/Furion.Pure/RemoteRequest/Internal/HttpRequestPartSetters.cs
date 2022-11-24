@@ -295,6 +295,19 @@ public sealed partial class HttpRequestPart
     }
 
     /// <summary>
+    /// 构建请求对象拦截器
+    /// </summary>
+    /// <param name="func"></param>
+    /// <returns></returns>
+    public HttpRequestPart OnRequesting(Func<HttpClient, HttpRequestMessage, Task> func)
+    {
+        if (func == null) return this;
+        if (!RequestAsyncInterceptors.Contains(func)) RequestAsyncInterceptors.Add(func);
+
+        return this;
+    }
+
+    /// <summary>
     /// 创建客户端对象拦截器
     /// </summary>
     /// <param name="action"></param>
@@ -303,6 +316,19 @@ public sealed partial class HttpRequestPart
     {
         if (action == null) return this;
         if (!HttpClientInterceptors.Contains(action)) HttpClientInterceptors.Add(action);
+
+        return this;
+    }
+
+    /// <summary>
+    /// 创建客户端对象拦截器
+    /// </summary>
+    /// <param name="func"></param>
+    /// <returns></returns>
+    public HttpRequestPart OnClientCreating(Func<HttpClient, Task> func)
+    {
+        if (func == null) return this;
+        if (!HttpClientAsyncInterceptors.Contains(func)) HttpClientAsyncInterceptors.Add(func);
 
         return this;
     }
@@ -321,6 +347,19 @@ public sealed partial class HttpRequestPart
     }
 
     /// <summary>
+    /// 请求成功拦截器
+    /// </summary>
+    /// <param name="func"></param>
+    /// <returns></returns>
+    public HttpRequestPart OnResponsing(Func<HttpClient, HttpResponseMessage, Task> func)
+    {
+        if (func == null) return this;
+        if (!ResponseAsyncInterceptors.Contains(func)) ResponseAsyncInterceptors.Add(func);
+
+        return this;
+    }
+
+    /// <summary>
     /// 请求异常拦截器
     /// </summary>
     /// <param name="action"></param>
@@ -329,6 +368,19 @@ public sealed partial class HttpRequestPart
     {
         if (action == null) return this;
         if (!ExceptionInterceptors.Contains(action)) ExceptionInterceptors.Add(action);
+
+        return this;
+    }
+
+    /// <summary>
+    /// 请求异常拦截器
+    /// </summary>
+    /// <param name="func"></param>
+    /// <returns></returns>
+    public HttpRequestPart OnException(Func<HttpClient, HttpResponseMessage, string, Task> func)
+    {
+        if (func == null) return this;
+        if (!ExceptionAsyncInterceptors.Contains(func)) ExceptionAsyncInterceptors.Add(func);
 
         return this;
     }

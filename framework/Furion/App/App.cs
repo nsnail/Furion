@@ -42,6 +42,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace Furion;
 
@@ -533,7 +534,8 @@ public static class App
                       (u.Type == "project" && !excludeAssemblyNames.Any(j => u.Name.EndsWith(j))) ||
                       (u.Type == "package" && (u.Name.StartsWith(nameof(Furion)) || supportPackageNamePrefixs.Any(p => u.Name.StartsWith(p)))) ||
                       (Settings.EnabledReferenceAssemblyScan == true && u.Type == "reference"))    // 判断是否启用引用程序集扫描
-               .Select(u => Reflect.GetAssembly(u.Name));
+               // package为 “.NS” 的，是修改版，要去掉后缀 nsnail@2022年11月24日21:05:41
+               .Select(u =>  Reflect.GetAssembly( u.Name.StartsWith(nameof(Furion)) ? Regex.Replace(u.Name, @"\.NS$","") : u.Name  ));
         }
         // 独立发布/单文件发布
         else

@@ -348,6 +348,13 @@ public static class SpecificationDocumentBuilder
             if (swaggerGenOptions.SwaggerGeneratorOptions.SwaggerDocs.ContainsKey(group)) continue;
 
             var groupOpenApiInfo = GetGroupOpenApiInfo(group) as OpenApiInfo;
+
+            // 默认从程序集特性中获取公司信息 nsnail@2023年10月11日14:38:14
+            if (groupOpenApiInfo.Contact == null)
+            {
+                var company = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
+                if (company != null) groupOpenApiInfo.Contact = new OpenApiContact { Name = company };
+            }
             swaggerGenOptions.SwaggerDoc(group, groupOpenApiInfo);
         }
     }
