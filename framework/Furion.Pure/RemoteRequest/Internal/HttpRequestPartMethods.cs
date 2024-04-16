@@ -721,6 +721,10 @@ public sealed partial class HttpRequestPart
             u?.Invoke(httpClient);
         });
 
+        // 判断命名客户端是否配置了 BaseAddress，且必须以 / 结尾
+        var httpClientOriginalString = httpClient.BaseAddress?.OriginalString;
+        if (!string.IsNullOrWhiteSpace(httpClientOriginalString) && !httpClientOriginalString.EndsWith("/"))
+            throw new InvalidOperationException($"The `{ClientName}` of HttpClient BaseAddress must be end with '/'.");
 
         // 检查请求地址，如果客户端 BaseAddress 没有配置且 RequestUrl 也没配置
         if (string.IsNullOrWhiteSpace(httpClientOriginalString) && string.IsNullOrWhiteSpace(RequestUrl)) throw new NullReferenceException(RequestUrl);
@@ -728,11 +732,6 @@ public sealed partial class HttpRequestPart
         // 处理模板问题
         RequestUrl = RequestUrl.Render(Templates, EncodeUrl);
 
-
-        // 配置请求拦截（异步）
-        foreach(var u in RequestAsyncInterceptors)
-            if (u != null)
-                await u.Invoke(httpClient, request);
         // 捕获异常
         Exception exception = default;
         HttpResponseMessage response = default;
@@ -745,7 +744,7 @@ public sealed partial class HttpRequestPart
             if (RetryPolicy == null)
             {
                 request?.Dispose();
-                request = CreateHttpRequestMessage(httpClient, httpClientOriginalString);
+                request = await CreateHttpRequestMessage(httpClient, httpClientOriginalString);
                 response = await httpClient.SendAsync(request, cancellationToken);
             }
             else
@@ -755,7 +754,7 @@ public sealed partial class HttpRequestPart
                 {
                     // 发送请求
                     request?.Dispose();
-                    request = CreateHttpRequestMessage(httpClient, httpClientOriginalString);
+                    request = await CreateHttpRequestMessage(httpClient, httpClientOriginalString);
                     response = await httpClient.SendAsync(request, cancellationToken);
 
                     // 状态码检查（确保异常正确抛出）
@@ -1207,7 +1206,7 @@ public sealed partial class HttpRequestPart
     /// <param name="httpClient"></param>
     /// <param name="httpClientOriginalString"></param>
     /// <returns></returns>
-    private HttpRequestMessage CreateHttpRequestMessage(HttpClient httpClient, string httpClientOriginalString)
+    private async Task<HttpRequestMessage> CreateHttpRequestMessage(HttpClient httpClient, string httpClientOriginalString)
     {
         // 构建请求对象
         var request = new HttpRequestMessage(Method, RequestUrl)
@@ -1237,6 +1236,11 @@ public sealed partial class HttpRequestPart
         {
             u?.Invoke(httpClient, request);
         });
+
+        // 配置请求拦截（异步）
+        foreach(var u in RequestAsyncInterceptors)
+            if (u != null)
+                await u.Invoke(httpClient, request);
 
         // 打印发送请求
         App.PrintToMiniProfiler(MiniProfilerCategory, "Sending", $"[{Method}] {httpClientOriginalString}{request.RequestUri?.OriginalString}");
